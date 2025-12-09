@@ -23,7 +23,20 @@ export class AngularHtmlDefinitionProvider implements DefinitionProvider {
       /(\([\w\.]*\)=")([^"]+)"/g,
 
       // Structural attributes. ex: *ngIf="myProp"
-      /(\*\w+=")([^"]+)"/g
+      /(\*\w+=")([^"]+)"/g,
+
+      // New control flow - @if. ex: @if (myProp) { }
+      /(@if\s*\()([^)]+)\)/g,
+
+      // New control flow - @for. ex: @for (item of items; track item.id) { }
+      /(@for\s*\([^;]+;\s*track\s+)([^)]+)\)/g,
+      /(@for\s*\()([^\s;]+)/g,
+
+      // New control flow - @switch. ex: @switch (myProp) { }
+      /(@switch\s*\()([^)]+)\)/g,
+
+      // New control flow - @case. ex: @case (myProp) { }
+      /(@case\s*\()([^)]+)\)/g
     ];
     const propertyMatch = utils.parseByLocationRegexps(lineText, position.character, propertyRegexps);
     if (!!propertyMatch) {
@@ -53,35 +66,47 @@ export class AngularHtmlDefinitionProvider implements DefinitionProvider {
   }
 
   private async propertyDefinition(document: TextDocument, position: Position) {
+    // Support signals with () - ex: mySignal() or regular properties
     const range = document.getWordRangeAtPosition(position, /[$\w]+/);
     if (!range) return null;
 
-    const propertyName = document.getText(range);
+    let propertyName = document.getText(range);
+    
+    // Check if this is a signal call by looking ahead for ()
+    const lineText = document.lineAt(position).text;
+    const afterRange = lineText.substring(range.end.character);
+    const isSignalCall = /^\s*\(/.test(afterRange);
+    
     const componentFilePath = document.fileName.substr(0, document.fileName.lastIndexOf('.')) + '.ts';
 
     const sourceFile = await TypescriptSyntaxParser.parseSourceFile(componentFilePath);
     if (!sourceFile) return null;
 
     const recursiveSyntaxKinds = [ts.SyntaxKind.ClassDeclaration, ts.SyntaxKind.Constructor];
-    const foundNode = TypescriptSyntaxParser.findNode<ts.Declaration>(sourceFile, (node) => {
-      let declaration = node as ts.Declaration;
+    const foundNode = TypescriptSyntaxParser.findNode<ts.NamedDeclaration>(sourceFile, (node) => {
+      let declaration = node as ts.NamedDeclaration;
       switch (node.kind) {
         case ts.SyntaxKind.PropertyDeclaration:
         case ts.SyntaxKind.MethodDeclaration:
         case ts.SyntaxKind.GetAccessor:
         case ts.SyntaxKind.SetAccessor:
-          return declaration.name.getText() === propertyName;
+          // Match property/method name
+          if (!!declaration.name && declaration.name.getText() === propertyName) {
+            // For signal calls mySignal(), also accept properties that might be signals
+            return true;
+          }
+          return false;
         case ts.SyntaxKind.Parameter:
           const publicAccessor = TypescriptSyntaxParser.findNode(node, (cn) => cn.kind === ts.SyntaxKind.PublicKeyword);
           return node.parent.kind == ts.SyntaxKind.Constructor
-            && declaration.name.getText() === propertyName
+            && !!declaration.name && declaration.name.getText() === propertyName
             && !!publicAccessor;
       }
 
       return false;
     }, recursiveSyntaxKinds);
 
-    if (!foundNode) return null;
+    if (!foundNode || !foundNode.name) return null;
 
     const declarationPos = TypescriptSyntaxParser.parsePosition(sourceFile, foundNode.name.getStart());
     if (!declarationPos) return null;
