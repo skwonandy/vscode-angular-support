@@ -1,6 +1,6 @@
 {
   "name": "vs-angular-support",
-  "displayName": "Angular Support",
+  "displayName": "vs-angular-support",
   "description": "Go to / peek angular specific definitions. Supports Angular 21.",
   "version": "1.0.0",
   "publisher": "skwonandy",
