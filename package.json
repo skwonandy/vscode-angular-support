@@ -2,7 +2,7 @@
   "name": "vs-angular-support",
   "displayName": "vs-angular-support",
   "description": "Go to / peek angular specific definitions. Supports Angular 21.",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "skwonandy",
 	"icon": "images/icon.png",
   "repository": {

@@ -6,3 +6,25 @@ src/**
 **/*.map
 .gitignore
 tsconfig.json
+# Exclude TypeScript server and compiler files (not needed for compiler API)
+node_modules/typescript/lib/tsserver*.js
+node_modules/typescript/lib/tsc.js
+node_modules/typescript/lib/typingsInstaller.js
+node_modules/typescript/lib/watchGuard.js
+node_modules/typescript/lib/watchGuard.d.ts
+node_modules/typescript/lib/tsserverlibrary.d.ts
+node_modules/typescript/lib/protocol.d.ts
+node_modules/typescript/lib/typescriptServices.js
+node_modules/typescript/lib/typescriptServices.d.ts
+# Exclude TypeScript lib definition files (not needed at runtime)
+node_modules/typescript/lib/lib.*.d.ts
+# Exclude diagnostic message files (not needed)
+node_modules/typescript/lib/*/diagnosticMessages.generated.json
+node_modules/typescript/lib/cancellationToken.js
+node_modules/typescript/lib/dynamicImportCompat.js
+node_modules/typescript/lib/typesMap.json
+# Exclude documentation files
+node_modules/typescript/ThirdPartyNoticeText.txt
+node_modules/typescript/SECURITY.md
+node_modules/typescript/README.md
+node_modules/typescript/lib/README.md

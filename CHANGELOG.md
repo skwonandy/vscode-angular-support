@@ -2,6 +2,11 @@
 
 All notable changes to the "vs-angular-support" extension will be documented in this file.
 
+## [1.0.3] - 2025-12-11
+
+### Changed
+- Reduced VSIX package size from 13MB to 2.8MB (78% reduction) by excluding unnecessary TypeScript files
+
 ## [1.0.2] - 2025-12-10
 
 ### Added
